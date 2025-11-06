@@ -1,0 +1,747 @@
+// Prisma Schema for PetHub Nigeria
+// This schema supports: Social networking, E-commerce, Marketplace, and Breeding services
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USER & AUTHENTICATION ====================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  phone         String?   @unique
+  password      String
+  firstName     String
+  lastName      String
+  avatar        String?
+  bio           String?
+  location      String?
+  verified      Boolean   @default(false)
+  role          UserRole  @default(USER)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+
+  // Social Features
+  pets          Pet[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  followers     Follow[]  @relation("UserFollowers")
+  following     Follow[]  @relation("UserFollowing")
+  messages      Message[] @relation("UserMessages")
+  conversations ConversationParticipant[]
+
+  // E-commerce
+  cart          CartItem[]
+  orders        Order[]
+  reviews       Review[]
+  wishlist      WishlistItem[]
+  addresses     Address[]
+
+  // Marketplace
+  petListings   PetListing[]
+  breedingServices BreedingService[]
+  bookings      Booking[]
+
+  // Notifications
+  notifications Notification[]
+
+  @@index([email])
+  @@index([phone])
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  BREEDER
+  VET
+  ADMIN
+  MODERATOR
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
+// ==================== PETS & SOCIAL ====================
+
+model Pet {
+  id          String    @id @default(uuid())
+  name        String
+  species     PetSpecies
+  breed       String
+  gender      PetGender
+  birthDate   DateTime?
+  avatar      String?
+  bio         String?
+  color       String?
+  weight      Float?
+  microchipId String?   @unique
+
+  ownerId     String
+  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Social Features
+  posts       Post[]
+  followers   PetFollow[]
+
+  // Health Records
+  healthRecords HealthRecord[]
+  vaccinations  Vaccination[]
+
+  // Breeding
+  breedingServicesMale   BreedingService[] @relation("StudPet")
+  breedingRequestsFemale BreedingRequest[] @relation("FemalePet")
+
+  @@index([ownerId])
+  @@map("pets")
+}
+
+enum PetSpecies {
+  DOG
+  CAT
+  BIRD
+  RABBIT
+  HAMSTER
+  GUINEA_PIG
+  FISH
+  REPTILE
+  OTHER
+}
+
+enum PetGender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+model Post {
+  id          String    @id @default(uuid())
+  caption     String?
+  images      String[]
+  videos      String[]
+  type        PostType  @default(POST)
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  petId       String?
+  pet         Pet?      @relation(fields: [petId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  comments    Comment[]
+  likes       Like[]
+
+  @@index([userId])
+  @@index([petId])
+  @@index([createdAt])
+  @@map("posts")
+}
+
+enum PostType {
+  POST
+  STORY
+  REEL
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model Like {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@map("likes")
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+
+  followerId  String
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+
+  followingId String
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+model PetFollow {
+  id        String   @id @default(uuid())
+  userId    String
+  petId     String
+  pet       Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, petId])
+  @@index([petId])
+  @@map("pet_follows")
+}
+
+// ==================== MESSAGING ====================
+
+model Conversation {
+  id           String    @id @default(uuid())
+  name         String?
+  isGroup      Boolean   @default(false)
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime?
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  content        String
+  attachments    String[]
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId       String
+  sender         User         @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ==================== E-COMMERCE ====================
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  image       String?
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+
+  products    Product[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+  @@map("categories")
+}
+
+model Product {
+  id              String        @id @default(uuid())
+  name            String
+  slug            String        @unique
+  description     String
+  shortDescription String?
+  images          String[]
+  price           Float
+  comparePrice    Float?
+  cost            Float?
+  sku             String?       @unique
+  barcode         String?
+  trackInventory  Boolean       @default(false)
+  stockQuantity   Int           @default(0)
+  lowStockAlert   Int?
+
+  categoryId      String
+  category        Category      @relation(fields: [categoryId], references: [id])
+
+  tags            String[]
+  petSpecies      PetSpecies[]
+
+  status          ProductStatus @default(DRAFT)
+  featured        Boolean       @default(false)
+
+  // Dropshipping
+  supplierName    String?
+  supplierUrl     String?
+  supplierPrice   Float?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  reviews         Review[]
+  wishlistItems   WishlistItem[]
+
+  @@index([slug])
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  OUT_OF_STOCK
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  quantity  Int      @default(1)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("cart_items")
+}
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlist_items")
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique
+
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+
+  status          OrderStatus @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentMethod   PaymentMethod
+
+  subtotal        Float
+  shippingCost    Float
+  tax             Float       @default(0)
+  discount        Float       @default(0)
+  total           Float
+
+  shippingAddress Json
+  billingAddress  Json?
+
+  trackingNumber  String?
+  logisticsPartner String?
+  estimatedDelivery DateTime?
+  deliveredAt     DateTime?
+
+  notes           String?
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           OrderItem[]
+  payment         Payment?
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  USSD
+  MOBILE_WALLET
+  CASH_ON_DELIVERY
+  CARD_ON_DELIVERY
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  quantity  Int
+  price     Float
+
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  amount          Float
+  currency        String        @default("NGN")
+  status          PaymentStatus
+  paymentMethod   PaymentMethod
+
+  orderId         String        @unique
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Payment Gateway Details
+  gateway         String        // paystack, flutterwave, etc.
+  gatewayRef      String?       @unique
+  gatewayResponse Json?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([orderId])
+  @@index([gatewayRef])
+  @@map("payments")
+}
+
+model Address {
+  id          String  @id @default(uuid())
+  fullName    String
+  phone       String
+  street      String
+  city        String
+  state       String
+  country     String  @default("Nigeria")
+  zipCode     String?
+  isDefault   Boolean @default(false)
+
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int      // 1-5
+  title     String?
+  comment   String
+  images    String[]
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  helpful   Int      @default(0)
+  verified  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+// ==================== MARKETPLACE ====================
+
+model PetListing {
+  id              String            @id @default(uuid())
+  title           String
+  description     String
+  species         PetSpecies
+  breed           String
+  gender          PetGender
+  age             String
+  price           Float
+  images          String[]
+  videos          String[]
+
+  sellerId        String
+  seller          User              @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  location        String
+  healthCertificate String?
+  vaccinated      Boolean           @default(false)
+  microchipped    Boolean           @default(false)
+
+  status          ListingStatus     @default(ACTIVE)
+  featured        Boolean           @default(false)
+
+  views           Int               @default(0)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([sellerId])
+  @@index([species])
+  @@index([status])
+  @@map("pet_listings")
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  SOLD
+  ARCHIVED
+}
+
+model BreedingService {
+  id              String            @id @default(uuid())
+  title           String
+  description     String
+
+  studPetId       String
+  studPet         Pet               @relation("StudPet", fields: [studPetId], references: [id], onDelete: Cascade)
+
+  breederId       String
+  breeder         User              @relation(fields: [breederId], references: [id], onDelete: Cascade)
+
+  price           Float
+  location        String
+  terms           String?
+
+  healthCertificate String?
+  pedigree        String?
+
+  status          ListingStatus     @default(ACTIVE)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  requests        BreedingRequest[]
+
+  @@index([breederId])
+  @@index([studPetId])
+  @@index([status])
+  @@map("breeding_services")
+}
+
+model BreedingRequest {
+  id              String            @id @default(uuid())
+
+  serviceId       String
+  service         BreedingService   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  requesterId     String
+  requester       User              @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+
+  femalePetId     String
+  femalePet       Pet               @relation("FemalePet", fields: [femalePetId], references: [id])
+
+  message         String?
+  status          BookingStatus     @default(PENDING)
+
+  scheduledDate   DateTime?
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([serviceId])
+  @@index([requesterId])
+  @@map("breeding_requests")
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  type            BookingType
+
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  serviceDetails  Json
+  scheduledDate   DateTime
+  status          BookingStatus @default(PENDING)
+
+  price           Float
+  paymentStatus   PaymentStatus @default(PENDING)
+
+  notes           String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@map("bookings")
+}
+
+enum BookingType {
+  VET
+  GROOMING
+  BOARDING
+  TRAINING
+  PHOTOGRAPHY
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+// ==================== HEALTH RECORDS ====================
+
+model HealthRecord {
+  id          String   @id @default(uuid())
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String
+  diagnosis   String?
+  treatment   String?
+  vetName     String?
+  documents   String[]
+
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([petId])
+  @@map("health_records")
+}
+
+model Vaccination {
+  id          String   @id @default(uuid())
+  petId       String
+  pet         Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+
+  name        String
+  date        DateTime
+  nextDue     DateTime?
+  vetName     String?
+  certificate String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([petId])
+  @@map("vaccinations")
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+
+  read      Boolean          @default(false)
+
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ORDER
+  PAYMENT
+  MESSAGE
+  FOLLOW
+  LIKE
+  COMMENT
+  BREEDING
+  BOOKING
+  SYSTEM
+}
