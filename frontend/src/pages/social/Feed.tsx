@@ -1,6 +1,6 @@
 import PostCard from '../../components/common/PostCard';
 import { mockPosts } from '../../data/mockData';
-import { Plus, Image, Video, Smile } from 'lucide-react';
+import { Image, Video, Smile } from 'lucide-react';
 
 const Feed = () => {
   return (
