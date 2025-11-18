@@ -5,7 +5,6 @@ import {
   ShoppingCart,
   DollarSign,
   TrendingUp,
-  Activity,
   Eye,
   Edit2,
   Trash2,

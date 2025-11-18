@@ -10,8 +10,9 @@ const Feed = () => {
   const { posts, addPost, setPosts } = usePostStore();
   const [caption, setCaption] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null); // Will be used for Cloudinary upload
   const fileInputRef = useRef<HTMLInputElement>(null);
+  console.log('Image file ready for upload:', imageFile?.name); // Temporary logging
 
   // Initialize with mock posts
   useEffect(() => {

@@ -7,8 +7,9 @@ import PostCard from '../components/common/PostCard';
 import PetCard from '../components/common/PetCard';
 
 const Profile = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Will be used for fetching user profile by ID
   const { user } = useAuth();
+  console.log('Viewing profile:', id); // Temporary - will be used for API call
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'posts' | 'pets' | 'about'>('posts');
 
