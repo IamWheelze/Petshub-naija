@@ -8,8 +8,14 @@ import Feed from './pages/social/Feed';
 import Shop from './pages/shop/Shop';
 import ProductDetail from './pages/shop/ProductDetail';
 import Marketplace from './pages/marketplace/Marketplace';
+import CreateListing from './pages/marketplace/CreateListing';
 import Cart from './pages/shop/Cart';
+import Wishlist from './pages/shop/Wishlist';
+import Checkout from './pages/shop/Checkout';
+import Orders from './pages/shop/Orders';
 import Profile from './pages/Profile';
+import Messages from './pages/Messages';
+import AdminDashboard from './pages/admin/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -32,6 +38,11 @@ function App() {
               <Profile />
             </ProtectedRoute>
           } />
+          <Route path="messages" element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          } />
 
           {/* Shop Routes */}
           <Route path="shop" element={<Shop />} />
@@ -41,9 +52,36 @@ function App() {
               <Cart />
             </ProtectedRoute>
           } />
+          <Route path="wishlist" element={
+            <ProtectedRoute>
+              <Wishlist />
+            </ProtectedRoute>
+          } />
+          <Route path="checkout" element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          } />
+          <Route path="orders" element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          } />
 
           {/* Marketplace Routes */}
           <Route path="marketplace" element={<Marketplace />} />
+          <Route path="marketplace/create" element={
+            <ProtectedRoute>
+              <CreateListing />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin Routes */}
+          <Route path="admin" element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
         </Route>
       </Routes>
     </AuthProvider>

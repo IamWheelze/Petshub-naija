@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Heart } from 'lucide-react';
+import { useCartStore } from '../../stores/cartStore';
+import { useWishlistStore } from '../../stores/wishlistStore';
 
 interface ProductCardProps {
   id: string;
@@ -10,6 +12,7 @@ interface ProductCardProps {
   rating?: number;
   reviews?: number;
   inStock?: boolean;
+  category?: string;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({
@@ -21,8 +24,37 @@ const ProductCard: React.FC<ProductCardProps> = ({
   rating = 4.5,
   reviews = 0,
   inStock = true,
+  category = 'General',
 }) => {
   const discount = comparePrice ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0;
+  const addToCart = useCartStore(state => state.addItem);
+  const { addItem: addToWishlist, isInWishlist } = useWishlistStore();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!inStock) return;
+
+    addToCart({
+      id: `${id}-${Date.now()}`,
+      productId: id,
+      name,
+      price,
+      image,
+      inStock,
+    });
+  };
+
+  const handleAddToWishlist = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addToWishlist({
+      id,
+      name,
+      price,
+      image,
+      category,
+      inStock,
+    });
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 group">
@@ -75,14 +107,22 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="flex gap-2">
           <button
-            className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2"
+            onClick={handleAddToCart}
+            className="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-300 disabled:cursor-not-allowed"
             disabled={!inStock}
           >
             <ShoppingCart size={18} />
             <span>Add to Cart</span>
           </button>
-          <button className="bg-gray-100 text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors">
-            <Heart size={20} />
+          <button
+            onClick={handleAddToWishlist}
+            className={`p-2 rounded-lg transition-colors ${
+              isInWishlist(id)
+                ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            <Heart size={20} className={isInWishlist(id) ? 'fill-current' : ''} />
           </button>
         </div>
       </div>

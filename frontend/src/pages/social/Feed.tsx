@@ -1,8 +1,70 @@
+import { useState, useRef, useEffect } from 'react';
 import PostCard from '../../components/common/PostCard';
 import { mockPosts } from '../../data/mockData';
-import { Image, Video, Smile } from 'lucide-react';
+import { Image as ImageIcon, X } from 'lucide-react';
+import { usePostStore } from '../../stores/postStore';
+import { useAuth } from '../../context/AuthContext';
 
 const Feed = () => {
+  const { user } = useAuth();
+  const { posts, addPost, setPosts } = usePostStore();
+  const [caption, setCaption] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize with mock posts
+  useEffect(() => {
+    if (posts.length === 0) {
+      setPosts(mockPosts);
+    }
+  }, []);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCreatePost = () => {
+    if (!caption.trim() && !selectedImage) {
+      alert('Please add a caption or image');
+      return;
+    }
+
+    // In real app, upload image to cloudinary and get URL
+    addPost({
+      user: {
+        name: `${user?.firstName || 'User'} ${user?.lastName || ''}`,
+        avatar: 'https://i.pravatar.cc/150?img=15',
+      },
+      caption: caption,
+      image: selectedImage || 'https://images.unsplash.com/photo-1450778869180-41d0601e046e?w=800',
+    });
+
+    // Reset form
+    setCaption('');
+    setSelectedImage(null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -11,37 +73,67 @@ const Feed = () => {
           <div className="lg:col-span-2 space-y-6">
             {/* Create Post */}
             <div className="bg-white rounded-lg shadow-md p-4">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-start gap-3 mb-4">
                 <img
                   src="https://i.pravatar.cc/150?img=15"
                   alt="Your avatar"
                   className="w-12 h-12 rounded-full"
                 />
-                <input
-                  type="text"
+                <textarea
+                  value={caption}
+                  onChange={(e) => setCaption(e.target.value)}
                   placeholder="Share your pet's moment..."
-                  className="flex-1 input-field"
-                  readOnly
+                  className="flex-1 input-field resize-none"
+                  rows={3}
                 />
               </div>
-              <div className="flex gap-4 border-t pt-3">
-                <button className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition">
-                  <Image size={20} />
-                  <span className="text-sm font-medium">Photo</span>
-                </button>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition">
-                  <Video size={20} />
-                  <span className="text-sm font-medium">Video</span>
-                </button>
-                <button className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition">
-                  <Smile size={20} />
-                  <span className="text-sm font-medium">Feeling</span>
+
+              {/* Image Preview */}
+              {selectedImage && (
+                <div className="relative mb-4">
+                  <img
+                    src={selectedImage}
+                    alt="Selected"
+                    className="w-full rounded-lg max-h-96 object-cover"
+                  />
+                  <button
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between border-t pt-3">
+                <div className="flex gap-4">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition"
+                  >
+                    <ImageIcon size={20} />
+                    <span className="text-sm font-medium">Photo</span>
+                  </button>
+                </div>
+                <button
+                  onClick={handleCreatePost}
+                  disabled={!caption.trim() && !selectedImage}
+                  className="btn-primary disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                  Post
                 </button>
               </div>
             </div>
 
             {/* Posts */}
-            {mockPosts.map((post) => (
+            {posts.map((post) => (
               <PostCard key={post.id} {...post} />
             ))}
 

@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ShoppingCart, User, Heart, Menu } from 'lucide-react';
 import { useState } from 'react';
+import { useCartStore } from '../../stores/cartStore';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const cartItemCount = useCartStore(state => state.getItemCount());
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -35,8 +37,13 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                <Link to="/cart" className="text-gray-700 hover:text-primary-600">
+                <Link to="/cart" className="relative text-gray-700 hover:text-primary-600">
                   <ShoppingCart size={24} />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-primary-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartItemCount > 9 ? '9+' : cartItemCount}
+                    </span>
+                  )}
                 </Link>
                 <Link to="/wishlist" className="text-gray-700 hover:text-primary-600">
                   <Heart size={24} />

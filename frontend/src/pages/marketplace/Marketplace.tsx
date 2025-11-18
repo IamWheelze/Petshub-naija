@@ -27,7 +27,7 @@ const Marketplace = () => {
               <h1 className="text-4xl font-bold mb-4">Pet Marketplace</h1>
               <p className="text-xl text-white/90">Find your perfect furry companion from verified breeders</p>
             </div>
-            <Link to="/sell-pet" className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition flex items-center gap-2">
+            <Link to="/marketplace/create" className="bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition flex items-center gap-2">
               <Plus size={20} />
               List Your Pet
             </Link>
