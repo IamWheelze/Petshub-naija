@@ -70,7 +70,7 @@ export const register = async (req: Request, res: Response) => {
 
     logger.info(`New user registered: ${user.email}`);
 
-    res.status(201).json({
+    return res.status(201).json({
       status: 'success',
       message: 'User registered successfully',
       data: {
@@ -140,7 +140,7 @@ export const login = async (req: Request, res: Response) => {
 
     logger.info(`User logged in: ${user.email}`);
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 'success',
       message: 'Login successful',
       data: {
@@ -189,7 +189,7 @@ export const getMe = async (req: any, res: Response) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       status: 'success',
       data: { user },
     });
@@ -204,7 +204,7 @@ export const getMe = async (req: any, res: Response) => {
 
 export const logout = async (_req: Request, res: Response) => {
   res.clearCookie('token');
-  res.status(200).json({
+  return res.status(200).json({
     status: 'success',
     message: 'Logged out successfully',
   });
