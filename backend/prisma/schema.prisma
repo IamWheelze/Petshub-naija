@@ -49,6 +49,7 @@ model User {
   // Marketplace
   petListings   PetListing[]
   breedingServices BreedingService[]
+  breedingRequests BreedingRequest[]
   bookings      Booking[]
 
   // Notifications
