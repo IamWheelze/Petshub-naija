@@ -10,7 +10,7 @@ const router = Router();
 // DELETE /api/pets/:id - Delete pet
 // POST /api/pets/:id/follow - Follow a pet
 
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 
