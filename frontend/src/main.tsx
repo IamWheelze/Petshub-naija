@@ -14,9 +14,11 @@ const queryClient = new QueryClient({
   },
 });
 
+const basename = import.meta.env.PROD ? '/Petshub-naija' : '';
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>
