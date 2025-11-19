@@ -12,7 +12,7 @@ const router = Router();
 // POST /api/posts/:id/like - Like a post
 // POST /api/posts/:id/comment - Comment on a post
 
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 

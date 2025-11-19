@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+// import { authenticate } from '../middleware/auth'; // TODO: Use when implementing routes
 
 const router = Router();
 
@@ -11,7 +11,7 @@ const router = Router();
 // GET /api/cart - Get cart items
 // POST /api/wishlist - Add to wishlist
 
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 

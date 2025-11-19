@@ -9,7 +9,7 @@ const router = Router();
 // GET /api/orders/:id - Get order details
 // PUT /api/orders/:id - Update order status
 
-router.get('/', authenticate, (req, res) => {
+router.get('/', authenticate, (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 

@@ -9,7 +9,7 @@ const router = Router();
 // GET /api/messages/conversations/:id - Get conversation messages
 // POST /api/messages/conversations/:id/messages - Send a message
 
-router.get('/conversations', authenticate, (req, res) => {
+router.get('/conversations', authenticate, (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 

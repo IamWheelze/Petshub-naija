@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+// import { authenticate } from '../middleware/auth'; // TODO: Use when implementing routes
 
 const router = Router();
 
@@ -10,7 +10,7 @@ const router = Router();
 // PUT /api/listings/:id - Update listing
 // DELETE /api/listings/:id - Delete listing
 
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 
