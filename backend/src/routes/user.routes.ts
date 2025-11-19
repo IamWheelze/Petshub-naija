@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticate } from '../middleware/auth';
+// import { authenticate } from '../middleware/auth'; // TODO: Use when implementing routes
 
 const router = Router();
 
@@ -9,7 +9,7 @@ const router = Router();
 // GET /api/users/:id/pets - Get user's pets
 // GET /api/users/:id/posts - Get user's posts
 
-router.get('/:id', (req, res) => {
+router.get('/:id', (_req, res) => {
   res.status(501).json({ status: 'error', message: 'Not implemented yet' });
 });
 
