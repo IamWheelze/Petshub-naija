@@ -9,14 +9,16 @@ const prisma = new PrismaClient();
 
 // Generate JWT token
 const generateToken = (userId: string, email: string, role: string): string => {
+  const secret = process.env.JWT_SECRET || 'fallback-secret-key';
+  const expiresIn = process.env.JWT_EXPIRES_IN || '7d';
   return jwt.sign(
     { id: userId, email, role },
-    process.env.JWT_SECRET!,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    secret,
+    { expiresIn }
   );
 };
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -85,7 +87,7 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -162,7 +164,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const getMe = async (req: any, res: Response) => {
+export const getMe = async (req: any, res: Response): Promise<void> => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -200,7 +202,7 @@ export const getMe = async (req: any, res: Response) => {
   }
 };
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (_req: Request, res: Response): Promise<void> => {
   res.clearCookie('token');
   res.status(200).json({
     status: 'success',
