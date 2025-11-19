@@ -80,7 +80,7 @@ export const register = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     logger.error('Registration error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Error registering user',
     });
@@ -157,7 +157,7 @@ export const login = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     logger.error('Login error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Error logging in',
     });
@@ -195,7 +195,7 @@ export const getMe = async (req: any, res: Response) => {
     });
   } catch (error: any) {
     logger.error('Get me error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       status: 'error',
       message: 'Error fetching user data',
     });
