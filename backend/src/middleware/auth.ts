@@ -51,7 +51,7 @@ export const authenticate = async (
       role: user.role,
     };
 
-    next();
+    return next();
   } catch (error) {
     return res.status(401).json({
       status: 'error',
@@ -76,6 +76,6 @@ export const authorize = (...roles: string[]) => {
       });
     }
 
-    next();
+    return next();
   };
 };
